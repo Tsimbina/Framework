@@ -58,4 +58,15 @@ public class Util {
     public List<Class<?>> getControllerClasses(String packagesName){
         return getClasses(packagesName, Controller.class);
     }
+
+    public List<Field> getAnnotedFields(Class<?> clazz, Class<?> annotationClass){
+        List<Field> listFields= new ArrayList<>();
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.isAnnotationPresent((Class<java.lang.annotation.Annotation>) annotationClass)) {
+                listFields.add(field);
+            }
+        }
+        return listFields;
+    }
+    
 }
