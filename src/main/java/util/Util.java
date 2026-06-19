@@ -43,16 +43,19 @@ public class Util {
         
         return  listClasses;
     } 
-    public List<Class<?>> getControllerClasses(String packagesName){
-
+    public List<Class<?>> getClasses(String packagesName, Class<?> annotationClass){
         List<Class<?>> listClasses= getClasses(packagesName);
-        List<Class<?>> listControllerClasses= new  ArrayList<>();
+        List<Class<?>> listAnnotatedClasses= new  ArrayList<>();
 
         for (Class<?> elem : listClasses) {
-            if (elem.isAnnotationPresent(Controller.class)) {
-                listControllerClasses.add(elem);
+            if (elem.isAnnotationPresent((Class<java.lang.annotation.Annotation>) annotationClass)) {
+                listAnnotatedClasses.add(elem);
             }
         }
-        return listControllerClasses;
+        return listAnnotatedClasses;
+    }
+
+    public List<Class<?>> getControllerClasses(String packagesName){
+        return getClasses(packagesName, Controller.class);
     }
 }
