@@ -2,7 +2,7 @@
 
 # Définition des variables
 APP_NAME="Framework-mvc-t"
-SRC_DIR="src/main/java"
+SRC_DIR="src/mg/itu/tsimbina"
 WEB_DIR="src/main/webapp"
 BUILD_DIR="build"
 LIB_DIR="lib"
