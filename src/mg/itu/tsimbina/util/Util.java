@@ -72,7 +72,7 @@ public class Util {
                     if (method.isAnnotationPresent(UrlMapping.class)) {
                         UrlMapping mapping = method.getAnnotation(UrlMapping.class);
                         String url = mapping.url();
-                        controlerMethods.put(url, new ControllerMethodUrlDTO(elem.getClass(), method));
+                        controlerMethods.put(url, new ControllerMethodUrlDTO(elem, method));
                     }
 
                 }

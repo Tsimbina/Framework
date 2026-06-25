@@ -14,7 +14,7 @@ public class ControllerMethodUrlDTO {
 
     @Override
     public String toString(){
-        return " controller: "+getControllerClass().getName()+"-> "+getMethod().getName()+"()";
+        return " controller: "+controllerClass.getName()+"-> "+getMethod().getName()+"()";
     }
 
     public Class<?> getControllerClass() {
