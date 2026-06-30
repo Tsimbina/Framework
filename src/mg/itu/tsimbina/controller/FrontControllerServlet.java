@@ -23,15 +23,9 @@ public class FrontControllerServlet extends HttpServlet {
     Util util;
 
     public void init() {
-        this.util = new Util();
-        controllerMethods = new HashMap<>();
-        try {
-            setListClasses(util.getClasses(getInitParameter("packages"), controllerMethods));
-
-        } catch (DupicatedUrl e) {
-            log(e.getMessage());
-            throw e;
-        }
+        this.setListClasses((List<Class<?>> ) this.getServletContext().getAttribute("listClasses"));
+        this.setUtil((Util) this.getServletContext().getAttribute("util"));
+        this.setControllerMethods((Map<UrlMethodDTO, ControllerMethodUrlDTO>) this.getServletContext().getAttribute("controllerMethods"));
     }
 
     @Override
@@ -82,5 +76,22 @@ public class FrontControllerServlet extends HttpServlet {
     public void setListClasses(List<Class<?>> listClasses) {
         this.listClasses = listClasses;
     }
+
+    public Map<UrlMethodDTO, ControllerMethodUrlDTO> getControllerMethods() {
+        return controllerMethods;
+    }
+
+    public void setControllerMethods(Map<UrlMethodDTO, ControllerMethodUrlDTO> controllerMethods) {
+        this.controllerMethods = controllerMethods;
+    }
+
+    public Util getUtil() {
+        return util;
+    }
+
+    public void setUtil(Util util) {
+        this.util = util;
+    }
+    
 
 }
