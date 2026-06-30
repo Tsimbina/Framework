@@ -13,16 +13,25 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import mg.itu.tsimbina.dto.UrlMethodDTO;
+import mg.itu.tsimbina.exception.DupicatedUrl;
 
 public class FrontControllerServlet extends HttpServlet {
 
     List<Class<?>> listClasses;
-    Map<String, ControllerMethodUrlDTO> controllerMethods;
+    Map<UrlMethodDTO, ControllerMethodUrlDTO> controllerMethods;
+    Util util;
 
     public void init() {
-        Util util = new Util();
+        this.util = new Util();
         controllerMethods = new HashMap<>();
-        setListClasses(util.getClasses(getInitParameter("packages"), controllerMethods));
+        try {
+            setListClasses(util.getClasses(getInitParameter("packages"), controllerMethods));
+
+        } catch (DupicatedUrl e) {
+            log(e.getMessage());
+            throw e;
+        }
     }
 
     @Override
@@ -36,6 +45,7 @@ public class FrontControllerServlet extends HttpServlet {
     }
 
     public void processHandler(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        
         res.setContentType("text/plain");
         PrintWriter out = res.getWriter();
         out.println("Welcome to FrameWorkMvc via url: " + req.getRequestURI());
@@ -50,34 +60,19 @@ public class FrontControllerServlet extends HttpServlet {
         out.println();
 
         try {
-            ControllerMethodUrlDTO controllerMethodUrlDTO = getControllerMethodUrlDTOByUrl(getPathAfterBaseURL(req));
-
-            out.println(controllerMethodUrlDTO);
+            UrlMethodDTO urlMethodDTO = new UrlMethodDTO(util.getPathAfterBaseURL(req), req.getMethod());
+            ControllerMethodUrlDTO controllerMethodUrlDTO = util.getControllerMethodUrlDTOByUrlMethod(urlMethodDTO, controllerMethods);
+            
+            out.println(urlMethodDTO + "" + controllerMethodUrlDTO);
         } catch (NoMethodUrlException e) {
             out.println(e.getMessage());
             out.println("List des controller method urls:");
 
-            for (String elem : controllerMethods.keySet()) {
-                out.println("Url:" + elem + " " + controllerMethods.get(elem));
+            for (UrlMethodDTO elem : controllerMethods.keySet()) {
+                out.println(elem + " " + controllerMethods.get(elem));
             }
         }
 
-    }
-
-    public ControllerMethodUrlDTO getControllerMethodUrlDTOByUrl(String url) {
-        ControllerMethodUrlDTO ret = controllerMethods.get(url);
-        if (ret != null) {
-            return ret;
-        } else {
-            throw new NoMethodUrlException("No method url found for url: " + url);
-
-        }
-    }
-
-    public String getPathAfterBaseURL(HttpServletRequest req) {
-        String baseURL = req.getContextPath();
-        String requestURL = req.getRequestURI();
-        return requestURL.substring(baseURL.length());
     }
 
     public List<Class<?>> getListClasses() {

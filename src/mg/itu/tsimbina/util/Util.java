@@ -4,9 +4,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import jakarta.servlet.http.HttpServletRequest;
 import mg.itu.tsimbina.annotation.Controller;
 import mg.itu.tsimbina.annotation.UrlMapping;
 import mg.itu.tsimbina.dto.ControllerMethodUrlDTO;
+import mg.itu.tsimbina.dto.UrlMethodDTO;
+import mg.itu.tsimbina.exception.DupicatedUrl;
+import mg.itu.tsimbina.exception.NoMethodUrlException;
 
 public class Util {
 
@@ -61,7 +66,7 @@ public class Util {
         return listAnnotatedClasses;
     }
 
-    public List<Class<?>> getClasses(String packagesName, Map<String, ControllerMethodUrlDTO> controlerMethods) {
+    public List<Class<?>> getClasses(String packagesName, Map<UrlMethodDTO, ControllerMethodUrlDTO> controlerMethods) throws DupicatedUrl {
         List<Class<?>> listClasses = getClasses(packagesName);
         List<Class<?>> listAnnotatedClasses = new ArrayList<>();
 
@@ -72,7 +77,12 @@ public class Util {
                     if (method.isAnnotationPresent(UrlMapping.class)) {
                         UrlMapping mapping = method.getAnnotation(UrlMapping.class);
                         String url = mapping.url();
-                        controlerMethods.put(url, new ControllerMethodUrlDTO(elem, method));
+                        String methodName = mapping.methodName();
+                        UrlMethodDTO urlMethodDTO = new UrlMethodDTO(url, methodName);
+                        if (controlerMethods.containsKey(urlMethodDTO)) {
+                            throw new DupicatedUrl(urlMethodDTO);
+                        }
+                        controlerMethods.put(urlMethodDTO, new ControllerMethodUrlDTO(elem, method));
                     }
 
                 }
@@ -80,6 +90,22 @@ public class Util {
         }
         return listAnnotatedClasses;
     }
+    public String getPathAfterBaseURL(HttpServletRequest req) {
+        String baseURL = req.getContextPath();
+        String requestURL = req.getRequestURI();
+        return requestURL.substring(baseURL.length());
+    }
+
+    public ControllerMethodUrlDTO getControllerMethodUrlDTOByUrlMethod(UrlMethodDTO urlMethodDTO, Map<UrlMethodDTO, ControllerMethodUrlDTO> controllerMethods) {
+        ControllerMethodUrlDTO ret = controllerMethods.get(urlMethodDTO);
+        if (ret != null) {
+            return ret;
+        } else {
+            throw new NoMethodUrlException("No method url found for url: " + urlMethodDTO);
+
+        }
+    }
+    
 
    
 }
