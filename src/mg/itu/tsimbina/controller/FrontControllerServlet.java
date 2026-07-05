@@ -23,15 +23,10 @@ public class FrontControllerServlet extends HttpServlet {
     Util util;
 
     public void init() {
-        this.util = new Util();
-        controllerMethods = new HashMap<>();
-        try {
-            setListClasses(util.getClasses(getInitParameter("packages"), controllerMethods));
+        this.setListClasses((List) this.getServletContext().getAttribute("listClasses"));
+        this.setUtil((Util) this.getServletContext().getAttribute("util"));
+        this.setControllerMethods((Map) this.getServletContext().getAttribute("controllerMethods"));
 
-        } catch (DupicatedUrl e) {
-            log(e.getMessage());
-            throw e;
-        }
     }
 
     @Override
@@ -45,7 +40,7 @@ public class FrontControllerServlet extends HttpServlet {
     }
 
     public void processHandler(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        
+
         res.setContentType("text/plain");
         PrintWriter out = res.getWriter();
         out.println("Welcome to FrameWorkMvc via url: " + req.getRequestURI());
@@ -76,11 +71,27 @@ public class FrontControllerServlet extends HttpServlet {
     }
 
     public List<Class<?>> getListClasses() {
-        return listClasses;
+        return this.listClasses;
     }
 
-    public void setListClasses(List<Class<?>> listClasses) {
-        this.listClasses = listClasses;
+    public void setListClasses(List<Class<?>> var1) {
+        this.listClasses = var1;
+    }
+
+    public Map<UrlMethodDTO, ControllerMethodUrlDTO> getControllerMethods() {
+        return this.controllerMethods;
+    }
+
+    public void setControllerMethods(Map<UrlMethodDTO, ControllerMethodUrlDTO> var1) {
+        this.controllerMethods = var1;
+    }
+
+    public Util getUtil() {
+        return this.util;
+    }
+
+    public void setUtil(Util var1) {
+        this.util = var1;
     }
 
 }
