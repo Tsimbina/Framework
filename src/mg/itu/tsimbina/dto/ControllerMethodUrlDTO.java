@@ -5,6 +5,8 @@ import java.lang.reflect.Method;
 public class ControllerMethodUrlDTO {
 
     private Class<?> controllerClass;
+    private Object controllerInstance;
+
     public ControllerMethodUrlDTO(Class<?> controllerClass, Method method) {
         this.controllerClass = controllerClass;
         this.method = method;
@@ -13,8 +15,8 @@ public class ControllerMethodUrlDTO {
     private Method method;
 
     @Override
-    public String toString(){
-        return " controller: "+controllerClass.getName()+"-> "+getMethod().getName()+"()";
+    public String toString() {
+        return " controller: " + controllerClass.getName() + "-> " + getMethod().getName() + "()";
     }
 
     public Class<?> getControllerClass() {
@@ -31,5 +33,21 @@ public class ControllerMethodUrlDTO {
 
     public void setMethod(Method method) {
         this.method = method;
+    }
+
+    public void executeMethod() {
+        if (controllerInstance == null) {
+            try {
+                controllerInstance = controllerClass.getDeclaredConstructor().newInstance();
+
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to create controller instance: " + e.getMessage(), e);
+            }
+        }
+        try {
+            method.invoke(controllerInstance);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to invoke method: " + e.getMessage(), e);
+        }
     }
 }

@@ -62,7 +62,7 @@ public class FrontControllerServlet extends HttpServlet {
         try {
             UrlMethodDTO urlMethodDTO = new UrlMethodDTO(util.getPathAfterBaseURL(req), req.getMethod());
             ControllerMethodUrlDTO controllerMethodUrlDTO = util.getControllerMethodUrlDTOByUrlMethod(urlMethodDTO, controllerMethods);
-            
+            controllerMethodUrlDTO.executeMethod();
             out.println(urlMethodDTO + "" + controllerMethodUrlDTO);
         } catch (NoMethodUrlException e) {
             out.println(e.getMessage());
