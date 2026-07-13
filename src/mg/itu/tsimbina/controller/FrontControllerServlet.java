@@ -5,7 +5,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import mg.itu.tsimbina.util.Util;
-import mg.itu.tsimbina.dto.ControllerMethodUrlDTO;
+import mg.itu.tsimbina.dto.ControllerMethod;
 import mg.itu.tsimbina.exception.NoMethodUrlException;
 
 import java.io.IOException;
@@ -13,20 +13,22 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.swing.text.View;
 import mg.itu.tsimbina.dto.UrlMethodDTO;
+import mg.itu.tsimbina.dto.ViewPathDTO;
 import mg.itu.tsimbina.exception.DupicatedUrl;
 
 public class FrontControllerServlet extends HttpServlet {
 
     List<Class<?>> listClasses;
-    Map<UrlMethodDTO, ControllerMethodUrlDTO> controllerMethods;
+    Map<UrlMethodDTO, ControllerMethod> controllerMethods;
     Util util;
-
+    ViewPathDTO viewPathDTO;
     public void init() {
         this.setListClasses((List) this.getServletContext().getAttribute("listClasses"));
         this.setUtil((Util) this.getServletContext().getAttribute("util"));
         this.setControllerMethods((Map) this.getServletContext().getAttribute("controllerMethods"));
-
+        this.setViewPathDTO((ViewPathDTO) this.getServletContext().getAttribute("viewPathDTO"));
     }
 
     @Override
@@ -56,9 +58,9 @@ public class FrontControllerServlet extends HttpServlet {
 
         try {
             UrlMethodDTO urlMethodDTO = new UrlMethodDTO(util.getPathAfterBaseURL(req), req.getMethod());
-            ControllerMethodUrlDTO controllerMethodUrlDTO = util.getControllerMethodUrlDTOByUrlMethod(urlMethodDTO, controllerMethods);
-            controllerMethodUrlDTO.executeMethod();
-            out.println(urlMethodDTO + "" + controllerMethodUrlDTO);
+            ControllerMethod ControllerMethod = util.getControllerMethodByUrlMethod(urlMethodDTO, controllerMethods);
+            out.println(urlMethodDTO + "" + ControllerMethod);
+            ControllerMethod.executeMethod(req,res,this.getViewPathDTO());
         } catch (NoMethodUrlException e) {
             out.println(e.getMessage());
             out.println("List des controller method urls:");
@@ -78,11 +80,11 @@ public class FrontControllerServlet extends HttpServlet {
         this.listClasses = var1;
     }
 
-    public Map<UrlMethodDTO, ControllerMethodUrlDTO> getControllerMethods() {
+    public Map<UrlMethodDTO, ControllerMethod> getControllerMethods() {
         return this.controllerMethods;
     }
 
-    public void setControllerMethods(Map<UrlMethodDTO, ControllerMethodUrlDTO> var1) {
+    public void setControllerMethods(Map<UrlMethodDTO, ControllerMethod> var1) {
         this.controllerMethods = var1;
     }
 
@@ -92,6 +94,14 @@ public class FrontControllerServlet extends HttpServlet {
 
     public void setUtil(Util var1) {
         this.util = var1;
+    }
+
+    public ViewPathDTO getViewPathDTO() {
+        return viewPathDTO;
+    }
+
+    public void setViewPathDTO(ViewPathDTO viewPathDTO) {
+        this.viewPathDTO = viewPathDTO;
     }
 
 }

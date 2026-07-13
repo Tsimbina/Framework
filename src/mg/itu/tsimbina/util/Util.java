@@ -8,7 +8,7 @@ import java.util.Map;
 import jakarta.servlet.http.HttpServletRequest;
 import mg.itu.tsimbina.annotation.Controller;
 import mg.itu.tsimbina.annotation.UrlMapping;
-import mg.itu.tsimbina.dto.ControllerMethodUrlDTO;
+import mg.itu.tsimbina.dto.ControllerMethod;
 import mg.itu.tsimbina.dto.UrlMethodDTO;
 import mg.itu.tsimbina.exception.DupicatedUrl;
 import mg.itu.tsimbina.exception.NoMethodUrlException;
@@ -66,7 +66,7 @@ public class Util {
         return listAnnotatedClasses;
     }
 
-    public List<Class<?>> getClasses(String packagesName, Map<UrlMethodDTO, ControllerMethodUrlDTO> controlerMethods) throws DupicatedUrl {
+    public List<Class<?>> getClasses(String packagesName, Map<UrlMethodDTO, ControllerMethod> controlerMethods) throws DupicatedUrl {
         List<Class<?>> listClasses = getClasses(packagesName);
         List<Class<?>> listAnnotatedClasses = new ArrayList<>();
 
@@ -82,7 +82,7 @@ public class Util {
                         if (controlerMethods.containsKey(urlMethodDTO)) {
                             throw new DupicatedUrl(urlMethodDTO);
                         }
-                        controlerMethods.put(urlMethodDTO, new ControllerMethodUrlDTO(elem, method));
+                        controlerMethods.put(urlMethodDTO, new ControllerMethod(elem, method));
                     }
 
                 }
@@ -96,8 +96,8 @@ public class Util {
         return requestURL.substring(baseURL.length());
     }
 
-    public ControllerMethodUrlDTO getControllerMethodUrlDTOByUrlMethod(UrlMethodDTO urlMethodDTO, Map<UrlMethodDTO, ControllerMethodUrlDTO> controllerMethods) {
-        ControllerMethodUrlDTO ret = controllerMethods.get(urlMethodDTO);
+    public ControllerMethod getControllerMethodByUrlMethod(UrlMethodDTO urlMethodDTO, Map<UrlMethodDTO, ControllerMethod> controllerMethods) {
+        ControllerMethod ret = controllerMethods.get(urlMethodDTO);
         if (ret != null) {
             return ret;
         } else {
@@ -105,6 +105,7 @@ public class Util {
 
         }
     }
+
     
 
    
