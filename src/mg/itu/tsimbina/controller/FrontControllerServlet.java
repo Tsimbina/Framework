@@ -14,6 +14,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.text.View;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+
 import mg.itu.tsimbina.dto.UrlMethodDTO;
 import mg.itu.tsimbina.dto.ViewPathDTO;
 import mg.itu.tsimbina.exception.DupicatedUrl;
@@ -24,11 +28,20 @@ public class FrontControllerServlet extends HttpServlet {
     Map<UrlMethodDTO, ControllerMethod> controllerMethods;
     Util util;
     ViewPathDTO viewPathDTO;
+    private ApplicationContext ctx;
     public void init() {
         this.setListClasses((List) this.getServletContext().getAttribute("listClasses"));
         this.setUtil((Util) this.getServletContext().getAttribute("util"));
         this.setControllerMethods((Map) this.getServletContext().getAttribute("controllerMethods"));
         this.setViewPathDTO((ViewPathDTO) this.getServletContext().getAttribute("viewPathDTO"));
+
+
+        try{
+            this.setCtx(WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext()));
+        } catch (Exception e) {
+            this.setCtx(null);
+        }
+        
     }
 
     @Override
@@ -60,7 +73,7 @@ public class FrontControllerServlet extends HttpServlet {
             UrlMethodDTO urlMethodDTO = new UrlMethodDTO(util.getPathAfterBaseURL(req), req.getMethod());
             ControllerMethod ControllerMethod = util.getControllerMethodByUrlMethod(urlMethodDTO, controllerMethods);
             out.println(urlMethodDTO + "" + ControllerMethod);
-            ControllerMethod.executeMethod(req,res,this.getViewPathDTO());
+            ControllerMethod.executeMethod(req,res,this.getViewPathDTO(),ctx);
         } catch (NoMethodUrlException e) {
             out.println(e.getMessage());
             out.println("List des controller method urls:");
@@ -102,6 +115,14 @@ public class FrontControllerServlet extends HttpServlet {
 
     public void setViewPathDTO(ViewPathDTO viewPathDTO) {
         this.viewPathDTO = viewPathDTO;
+    }
+
+    public ApplicationContext getCtx() {
+        return ctx;
+    }
+
+    public void setCtx(ApplicationContext ctx) {
+        this.ctx = ctx;
     }
 
 }
