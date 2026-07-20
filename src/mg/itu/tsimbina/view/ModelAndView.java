@@ -8,6 +8,7 @@ public class ModelAndView {
 
     public ModelAndView(String viewName) {
         this.viewName = viewName;   
+        this.attributes = new HashMap<>();
     }
 
     public String getViewName() {

@@ -7,7 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import mg.itu.tsimbina.view.ModelAndView;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
-public class ControllerMethod{
+import org.springframework.context.ApplicationContext;
+
+public class ControllerMethod {
 
     private Class<?> controllerClass;
     private Object controllerInstance;
@@ -40,7 +42,8 @@ public class ControllerMethod{
         this.method = method;
     }
 
-    public void executeMethod(HttpServletRequest request, HttpServletResponse response, ViewPathDTO viewPathDTO) {
+    public void executeMethod(HttpServletRequest request, HttpServletResponse response, ViewPathDTO viewPathDTO, ApplicationContext ctx) {
+
         if (controllerInstance == null) {
             try {
                 controllerInstance = controllerClass.getDeclaredConstructor().newInstance();
@@ -51,14 +54,27 @@ public class ControllerMethod{
         try {
             response.setContentType("text/html;charset=UTF-8");
 
-            Object o = method.invoke(controllerInstance);
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            Object[] parameters = new Object[parameterTypes.length];
+
+            for (int i = 0; i < parameterTypes.length; i++) {
+                if (parameterTypes[i].equals(ApplicationContext.class)) {
+                    parameters[i] = ctx;
+                } else {
+                    parameters[i] = null;
+                }
+            }
+
+            Object o = method.invoke(controllerInstance, parameters);
             ModelAndView mv = ModelAndView.toModelAndView(o);
             String viewPath = viewPathDTO.formatView(mv);
             for (Map.Entry<String, Object> en : mv.getAttributes().entrySet()) {
                 request.setAttribute(en.getKey(), en.getValue());
             }
             RequestDispatcher dispat = request.getRequestDispatcher(viewPath);
-            System.out.println("dispatch to executed");
+
+            System.out.println(
+                    "dispatch to executed");
             dispat.forward(request, response);
         } catch (Exception e) {
             throw new RuntimeException("Failed to invoke method: " + e.getMessage(), e);
