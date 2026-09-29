@@ -1,39 +1,40 @@
 #!/bin/bash
 
-# Définition des variables
 APP_NAME="Framework-mvc-t"
-SRC_DIR="src/mg/itu/tsimbina"
-WEB_DIR="src/main/webapp"
+SRC_DIR="src"
 BUILD_DIR="build"
 LIB_DIR="lib"
-TOMCAT_WEBAPPS="/opt/Tomcat/webapps"
-SERVLET_API_JAR="$LIB_DIR/servlet-api.jar"
 
-# Nettoyage et création du répertoire temporaire
 rm -rf $BUILD_DIR
-mkdir -p $BUILD_DIR/WEB-INF/classes
+mkdir -p $BUILD_DIR/
 
-# Compilation des fichiers Java avec le JAR des Servlets
+# Construction du classpath avec tous les jars
+CLASSPATH=$(echo $LIB_DIR/*.jar | tr ' ' ':')
+
+echo "Classpath utilisé :"
+echo $CLASSPATH
+
+# Liste des sources
 find $SRC_DIR -name "*.java" > sources.txt
-javac -cp $SERVLET_API_JAR -d $BUILD_DIR @sources.txt
+
+# Compilation
+javac -cp "$CLASSPATH" \
+      -d $BUILD_DIR/ \
+      @sources.txt
+
+if [ $? -ne 0 ]; then
+    echo "Erreur compilation"
+    exit 1
+fi
+
 rm sources.txt
 
-# Copier les fichiers web (web.xml, JSP, etc.)
-#cp -r $WEB_DIR/* $BUILD_DIR/
+# Copie des fichiers WEB-INF si nécessaire
+# cp -r web.xml build/WEB-INF/
 
-#copier web.xml vers web-inf
-#cp web.xml $BUILD_DIR/WEB-INF/
-
-# Générer le fichier .war dans le dossier build
-#cd $BUILD_DIR || exit
-jar -cvf $APP_NAME.jar -C ./build .
-#cd ..
-
-# Déploiement dans Tomcat
-#cp -f $BUILD_DIR/$APP_NAME.war $TOMCAT_WEBAPPS/
+# Création du jar
+jar -cvf $APP_NAME.jar -C $BUILD_DIR .
 
 echo ""
-
+echo "Compilation terminée."
 echo "Déploiement terminé. Redémarrez Tomcat si nécessaire."
-
-echo ""
