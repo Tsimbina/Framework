@@ -1,5 +1,6 @@
 package mg.itu.tsimbina.dto;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import jakarta.servlet.RequestDispatcher;
@@ -9,6 +10,8 @@ import mg.itu.tsimbina.view.ModelAndView;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import org.springframework.context.ApplicationContext;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ControllerMethod {
 
@@ -64,8 +67,13 @@ public class ControllerMethod {
                 }
             }
             if (method.isAnnotationPresent(WebApi.class)) {
-                response.setContentType("text/html;charset=UTF-8");
 
+                Object o = method.invoke(controllerInstance, parameters);
+                response.setContentType("application/json");
+                response.setCharacterEncoding("UTF-8");
+                response.getWriter().write(new ObjectMapper().writeValueAsString(o));
+
+                // mapper.writeValue(response.getWriter(), method.invoke(controllerInstance, parameters));
             } else {
                 response.setContentType("text/html;charset=UTF-8");
 

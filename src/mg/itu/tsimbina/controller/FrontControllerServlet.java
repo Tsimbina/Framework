@@ -56,30 +56,30 @@ public class FrontControllerServlet extends HttpServlet {
 
     public void processHandler(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-        res.setContentType("text/plain");
-        PrintWriter out = res.getWriter();
-        out.println("Welcome to FrameWorkMvc via url: " + req.getRequestURI());
-        out.println();
-        out.println();
+        //res.setContentType("text/plain");
+        //PrintWriter out = res.getWriter();
+        System.out.println("Welcome to FrameWorkMvc via url: " + req.getRequestURI());
+        System.out.println();
+        System.out.println();
 
-        out.println("List des classes controller :");
+        System.out.println("List des classes controller :");
         for (Class<?> elem : getListClasses()) {
-            out.println(elem.getName());
+            System.out.println(elem.getName());
         }
-        out.println();
-        out.println();
+        System.out.println();
+        System.out.println();
 
         try {
             UrlMethodDTO urlMethodDTO = new UrlMethodDTO(util.getPathAfterBaseURL(req), req.getMethod());
             ControllerMethod ControllerMethod = util.getControllerMethodByUrlMethod(urlMethodDTO, controllerMethods);
-            out.println(urlMethodDTO + "" + ControllerMethod);
+            System.out.println(urlMethodDTO + "" + ControllerMethod);
             ControllerMethod.executeMethod(req,res,this.getViewPathDTO(),ctx);
         } catch (NoMethodUrlException e) {
-            out.println(e.getMessage());
-            out.println("List des controller method urls:");
+            System.out.println(e.getMessage());
+            System.out.println("List des controller method urls:");
 
             for (UrlMethodDTO elem : controllerMethods.keySet()) {
-                out.println(elem + " " + controllerMethods.get(elem));
+                System.out.println(elem + " " + controllerMethods.get(elem));
             }
         }
 
