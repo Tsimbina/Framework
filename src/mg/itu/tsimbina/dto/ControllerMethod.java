@@ -12,6 +12,7 @@ import java.util.Map;
 import org.springframework.context.ApplicationContext;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.lang.reflect.Parameter;
 
 public class ControllerMethod {
 
@@ -56,16 +57,34 @@ public class ControllerMethod {
             }
         }
         try {
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            Object[] parameters = new Object[parameterTypes.length];
+            //Class<?>[] parameterTypes = method.getParameterTypes();
+            Parameter[] param = method.getParameters();
+            Object[] parameters = new Object[param.length];
 
-            for (int i = 0; i < parameterTypes.length; i++) {
-                if (parameterTypes[i].equals(ApplicationContext.class)) {
+            for (int i = 0; i < param.length; i++) {
+                if (param[i].getType().equals(ApplicationContext.class)) {
                     parameters[i] = ctx;
                 } else {
-                    parameters[i] = null;
+                    Class<?> type = param[i].getType();
+                    String valeur = request.getParameter(param[i].getName());
+
+                    if (type == int.class || type == Integer.class) {
+                        parameters[i] = Integer.parseInt(valeur);
+                    } else if (type == double.class || type == Double.class) {
+                        parameters[i] = Double.parseDouble(valeur);
+                    } else if (type == boolean.class || type == Boolean.class) {
+                        parameters[i] = Boolean.parseBoolean(valeur);
+                    } else if (type == long.class || type == Long.class) {
+                        parameters[i] = Long.parseLong(valeur);
+                    } else if (type == String.class) {
+                        parameters[i] = valeur;
+                    }
+                    //parameters[i] = param[i].getType().cast(request.getParameter(param[i].getName()));
+
+                    //System.out.println("parm n-"+1+" has name-> "+ param[i].getName());
                 }
             }
+
             if (method.isAnnotationPresent(WebApi.class)) {
 
                 Object o = method.invoke(controllerInstance, parameters);
@@ -78,6 +97,9 @@ public class ControllerMethod {
                 response.setContentType("text/html;charset=UTF-8");
 
                 Object o = method.invoke(controllerInstance, parameters);
+                //if (o.getClass().isInstance(Strin)) {
+                //    
+                //}
                 ModelAndView mv = ModelAndView.toModelAndView(o);
                 String viewPath = viewPathDTO.formatView(mv);
                 for (Map.Entry<String, Object> en : mv.getAttributes().entrySet()) {
