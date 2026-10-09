@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.lang.reflect.Parameter;
 import mg.itu.tsimbina.annotation.Controller;
 import mg.itu.tsimbina.annotation.UrlMapping;
 import mg.itu.tsimbina.dto.ControllerMethod;
@@ -105,6 +106,15 @@ public class Util {
 
         }
     }
+
+    public List<String> splitParamName(String paramName){
+        return  List.of(paramName.split("."));
+    }
+
+    public void buildParamObject( Object paramReturn, Parameter param ,HttpServletRequest request){
+        
+    }
+
 
     
 

@@ -6,8 +6,13 @@ import java.lang.reflect.Method;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.http.HttpServletRequest;
 import mg.itu.tsimbina.annotation.WebApi;
+import mg.itu.tsimbina.util.Binder;
 import mg.itu.tsimbina.view.ModelAndView;
 import jakarta.servlet.http.HttpServletResponse;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import org.springframework.context.ApplicationContext;
 
@@ -60,6 +65,11 @@ public class ControllerMethod {
             //Class<?>[] parameterTypes = method.getParameterTypes();
             Parameter[] param = method.getParameters();
             Object[] parameters = new Object[param.length];
+            Map<String, String[]> parametersMap = request.getParameterMap();
+
+
+            List<String> keys = new ArrayList<>(parametersMap.keySet());
+            Collections.sort(keys);
 
             for (int i = 0; i < param.length; i++) {
                 if (param[i].getType().equals(ApplicationContext.class)) {
@@ -67,18 +77,21 @@ public class ControllerMethod {
                 } else {
                     Class<?> type = param[i].getType();
                     String valeur = request.getParameter(param[i].getName());
+                    parameters[i]= Binder.bind(parametersMap, param[i].getName(), type);
+                    
+                    //if (type == int.class || type == Integer.class) {
+                    //    parameters[i] = Integer.parseInt(valeur);
+                    //} else if (type == double.class || type == Double.class) {
+                    //    parameters[i] = Double.parseDouble(valeur);
+                    //} else if (type == boolean.class || type == Boolean.class) {
+                    //    parameters[i] = Boolean.parseBoolean(valeur);
+                    //} else if (type == long.class || type == Long.class) {
+                    //    parameters[i] = Long.parseLong(valeur);
+                    //} else if (type == String.class) {
+                    //    parameters[i] = valeur;
+                    //}
 
-                    if (type == int.class || type == Integer.class) {
-                        parameters[i] = Integer.parseInt(valeur);
-                    } else if (type == double.class || type == Double.class) {
-                        parameters[i] = Double.parseDouble(valeur);
-                    } else if (type == boolean.class || type == Boolean.class) {
-                        parameters[i] = Boolean.parseBoolean(valeur);
-                    } else if (type == long.class || type == Long.class) {
-                        parameters[i] = Long.parseLong(valeur);
-                    } else if (type == String.class) {
-                        parameters[i] = valeur;
-                    }
+
                     //parameters[i] = param[i].getType().cast(request.getParameter(param[i].getName()));
 
                     //System.out.println("parm n-"+1+" has name-> "+ param[i].getName());
