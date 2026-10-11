@@ -1,11 +1,10 @@
 package mg.itu.tsimbina.util;
 
 import java.util.Map;
-
-import jakarta.servlet.http.HttpServletRequest;
-import mg.itu.tsimbina.annotation.Model;
-
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+
+import mg.itu.tsimbina.annotation.Model;
 
 public class Binder {
 
@@ -17,33 +16,55 @@ public class Binder {
 
         T objet = clazz.getDeclaredConstructor().newInstance();
 
-        //Map<String, String[]> parameters = request.getParameterMap();
-
         for (Map.Entry<String, String[]> entry : parameters.entrySet()) {
 
             String key = entry.getKey();
 
-            // Vérifie que le paramètre commence par "client."
             String debut = prefix + ".";
 
             if (!key.startsWith(debut)) {
                 continue;
             }
-            // Exemple :
-            // client.nom -> nom
+
+            // Exemple : client.nom -> nom
             String fieldName = key.substring(debut.length());
+
             String[] parts = fieldName.split("\\.");
+
+            // Récupérer le champ
             Field field = clazz.getDeclaredField(parts[0]);
 
-            field.setAccessible(true);
             String value = entry.getValue()[0];
-            Object valeurConvertie= null;
+
+            Object valeurConvertie;
+
             if (field.getType().isAnnotationPresent(Model.class)) {
-                 valeurConvertie = bind(parameters, fieldName, field.getType());
+
+                // Gestion d'un objet imbriqué
+                valeurConvertie = bind(
+                        parameters,
+                        fieldName,
+                        field.getType()
+                );
+
             } else {
-                 valeurConvertie = convertir(value, field.getType());
+
+                valeurConvertie = convertir(value, field.getType());
             }
-            field.set(objet, valeurConvertie);
+
+            // Construire le nom du setter
+            String nomSetter = "set"
+                    + Character.toUpperCase(parts[0].charAt(0))
+                    + parts[0].substring(1);
+
+            // Récupérer le setter
+            Method setter = clazz.getMethod(
+                    nomSetter,
+                    field.getType()
+            );
+
+            // Appeler le setter
+            setter.invoke(objet, valeurConvertie);
         }
 
         return objet;
