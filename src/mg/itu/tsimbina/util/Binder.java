@@ -1,21 +1,26 @@
 package mg.itu.tsimbina.util;
 
 import java.util.Map;
+
+import jakarta.servlet.http.Part;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import mg.itu.tsimbina.annotation.Model;
+import mg.itu.tsimbina.model.Fichier;
 
 public class Binder {
 
     public static <T> T bind(
             Map<String, String[]> parameters,
+            Part[] parts,
             String prefix,
             Class<T> clazz
     ) throws Exception {
 
         T objet = clazz.getDeclaredConstructor().newInstance();
-
+        
         for (Map.Entry<String, String[]> entry : parameters.entrySet()) {
 
             String key = entry.getKey();
@@ -29,10 +34,10 @@ public class Binder {
             // Exemple : client.nom -> nom
             String fieldName = key.substring(debut.length());
 
-            String[] parts = fieldName.split("\\.");
+            String[] parties = fieldName.split("\\.");
 
             // Récupérer le champ
-            Field field = clazz.getDeclaredField(parts[0]);
+            Field field = clazz.getDeclaredField(parties[0]);
 
             String value = entry.getValue()[0];
 
@@ -43,6 +48,7 @@ public class Binder {
                 // Gestion d'un objet imbriqué
                 valeurConvertie = bind(
                         parameters,
+                        parts,
                         fieldName,
                         field.getType()
                 );
@@ -54,8 +60,8 @@ public class Binder {
 
             // Construire le nom du setter
             String nomSetter = "set"
-                    + Character.toUpperCase(parts[0].charAt(0))
-                    + parts[0].substring(1);
+                    + Character.toUpperCase(parties[0].charAt(0))
+                    + parties[0].substring(1);
 
             // Récupérer le setter
             Method setter = clazz.getMethod(

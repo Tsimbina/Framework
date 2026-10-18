@@ -9,6 +9,7 @@ import mg.itu.tsimbina.annotation.WebApi;
 import mg.itu.tsimbina.util.Binder;
 import mg.itu.tsimbina.view.ModelAndView;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,7 +53,8 @@ public class ControllerMethod {
         this.method = method;
     }
 
-    public void executeMethod(HttpServletRequest request, HttpServletResponse response, ViewPathDTO viewPathDTO, ApplicationContext ctx) {
+    public void executeMethod(HttpServletRequest request, HttpServletResponse response, ViewPathDTO viewPathDTO,
+            ApplicationContext ctx) {
 
         if (controllerInstance == null) {
             try {
@@ -62,11 +64,10 @@ public class ControllerMethod {
             }
         }
         try {
-            //Class<?>[] parameterTypes = method.getParameterTypes();
+            // Class<?>[] parameterTypes = method.getParameterTypes();
             Parameter[] param = method.getParameters();
             Object[] parameters = new Object[param.length];
             Map<String, String[]> parametersMap = request.getParameterMap();
-
 
             List<String> keys = new ArrayList<>(parametersMap.keySet());
             Collections.sort(keys);
@@ -77,24 +78,33 @@ public class ControllerMethod {
                 } else {
                     Class<?> type = param[i].getType();
                     String valeur = request.getParameter(param[i].getName());
-                    parameters[i]= Binder.bind(parametersMap, param[i].getName(), type);
-                    
-                    //if (type == int.class || type == Integer.class) {
-                    //    parameters[i] = Integer.parseInt(valeur);
-                    //} else if (type == double.class || type == Double.class) {
-                    //    parameters[i] = Double.parseDouble(valeur);
-                    //} else if (type == boolean.class || type == Boolean.class) {
-                    //    parameters[i] = Boolean.parseBoolean(valeur);
-                    //} else if (type == long.class || type == Long.class) {
-                    //    parameters[i] = Long.parseLong(valeur);
-                    //} else if (type == String.class) {
-                    //    parameters[i] = valeur;
-                    //}
+                    Part[] parts = request.getParts().toArray(new Part[0]);
+                    System.out.println("Content-Type : " + request.getContentType());
+                    System.out.println("Nombre de parts : " + parts.length);
+                    for (Part p : parts) {
+                        System.out.println("part name=" + p.getName()
+                                + " filename=" + p.getSubmittedFileName()
+                                + " size=" + p.getSize());
+                    }
+                    System.out.println("Prefix attendu : " + param[i].getName());
+                    parameters[i] = Binder.bind(parametersMap, parts, param[i].getName(), type);
 
+                    // if (type == int.class || type == Integer.class) {
+                    // parameters[i] = Integer.parseInt(valeur);
+                    // } else if (type == double.class || type == Double.class) {
+                    // parameters[i] = Double.parseDouble(valeur);
+                    // } else if (type == boolean.class || type == Boolean.class) {
+                    // parameters[i] = Boolean.parseBoolean(valeur);
+                    // } else if (type == long.class || type == Long.class) {
+                    // parameters[i] = Long.parseLong(valeur);
+                    // } else if (type == String.class) {
+                    // parameters[i] = valeur;
+                    // }
 
-                    //parameters[i] = param[i].getType().cast(request.getParameter(param[i].getName()));
+                    // parameters[i] =
+                    // param[i].getType().cast(request.getParameter(param[i].getName()));
 
-                    //System.out.println("parm n-"+1+" has name-> "+ param[i].getName());
+                    // System.out.println("parm n-"+1+" has name-> "+ param[i].getName());
                 }
             }
 
@@ -105,14 +115,15 @@ public class ControllerMethod {
                 response.setCharacterEncoding("UTF-8");
                 response.getWriter().write(new ObjectMapper().writeValueAsString(o));
 
-                // mapper.writeValue(response.getWriter(), method.invoke(controllerInstance, parameters));
+                // mapper.writeValue(response.getWriter(), method.invoke(controllerInstance,
+                // parameters));
             } else {
                 response.setContentType("text/html;charset=UTF-8");
 
                 Object o = method.invoke(controllerInstance, parameters);
-                //if (o.getClass().isInstance(Strin)) {
-                //    
-                //}
+                // if (o.getClass().isInstance(Strin)) {
+                //
+                // }
                 ModelAndView mv = ModelAndView.toModelAndView(o);
                 String viewPath = viewPathDTO.formatView(mv);
                 for (Map.Entry<String, Object> en : mv.getAttributes().entrySet()) {

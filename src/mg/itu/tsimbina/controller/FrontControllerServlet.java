@@ -1,9 +1,11 @@
 package mg.itu.tsimbina.controller;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import mg.itu.tsimbina.util.Util;
 import mg.itu.tsimbina.dto.ControllerMethod;
 import mg.itu.tsimbina.exception.NoMethodUrlException;
@@ -22,6 +24,7 @@ import mg.itu.tsimbina.dto.UrlMethodDTO;
 import mg.itu.tsimbina.dto.ViewPathDTO;
 import mg.itu.tsimbina.exception.DupicatedUrl;
 
+@MultipartConfig 
 public class FrontControllerServlet extends HttpServlet {
 
     List<Class<?>> listClasses;
@@ -29,19 +32,19 @@ public class FrontControllerServlet extends HttpServlet {
     Util util;
     ViewPathDTO viewPathDTO;
     private ApplicationContext ctx;
+
     public void init() {
         this.setListClasses((List) this.getServletContext().getAttribute("listClasses"));
         this.setUtil((Util) this.getServletContext().getAttribute("util"));
         this.setControllerMethods((Map) this.getServletContext().getAttribute("controllerMethods"));
         this.setViewPathDTO((ViewPathDTO) this.getServletContext().getAttribute("viewPathDTO"));
 
-
-        try{
+        try {
             this.setCtx(WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext()));
         } catch (Exception e) {
             this.setCtx(null);
         }
-        
+
     }
 
     @Override
@@ -51,13 +54,24 @@ public class FrontControllerServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        System.out.println("Classe detation(MultipartConfig.class) != null));
+        try {
+            System.out.println("Parts directes : " + req.getParts().size());
+            for (Part p : req.getParts()) {
+                System.out.println("  name=" + p.getName() + " filename=" + p.getSubmittedFileName());
+            } la requête : " + req.getClass().getName());
+        System.out.println("@MultipartConfig présent : "
+                + (getClass().getAnno
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         processHandler(req, res);
     }
 
     public void processHandler(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
 
-        //res.setContentType("text/plain");
-        //PrintWriter out = res.getWriter();
+        // res.setContentType("text/plain");
+        // PrintWriter out = res.getWriter();
         System.out.println("Welcome to FrameWorkMvc via url: " + req.getRequestURI());
         System.out.println();
         System.out.println();
@@ -73,7 +87,7 @@ public class FrontControllerServlet extends HttpServlet {
             UrlMethodDTO urlMethodDTO = new UrlMethodDTO(util.getPathAfterBaseURL(req), req.getMethod());
             ControllerMethod ControllerMethod = util.getControllerMethodByUrlMethod(urlMethodDTO, controllerMethods);
             System.out.println(urlMethodDTO + "" + ControllerMethod);
-            ControllerMethod.executeMethod(req,res,this.getViewPathDTO(),ctx);
+            ControllerMethod.executeMethod(req, res, this.getViewPathDTO(), ctx);
         } catch (NoMethodUrlException e) {
             System.out.println(e.getMessage());
             System.out.println("List des controller method urls:");
