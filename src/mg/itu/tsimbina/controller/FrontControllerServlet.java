@@ -9,6 +9,7 @@ import jakarta.servlet.http.Part;
 import mg.itu.tsimbina.util.Util;
 import mg.itu.tsimbina.dto.ControllerMethod;
 import mg.itu.tsimbina.exception.NoMethodUrlException;
+import mg.itu.tsimbina.model.MySession;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -31,6 +32,15 @@ public class FrontControllerServlet extends HttpServlet {
     Map<UrlMethodDTO, ControllerMethod> controllerMethods;
     Util util;
     ViewPathDTO viewPathDTO;
+    MySession mySession;
+    public MySession getMySession() {
+        return mySession;
+    }
+
+    public void setMySession(MySession mySession) {
+        this.mySession = mySession;
+    }
+
     private ApplicationContext ctx;
 
     public void init() {
@@ -38,6 +48,8 @@ public class FrontControllerServlet extends HttpServlet {
         this.setUtil((Util) this.getServletContext().getAttribute("util"));
         this.setControllerMethods((Map) this.getServletContext().getAttribute("controllerMethods"));
         this.setViewPathDTO((ViewPathDTO) this.getServletContext().getAttribute("viewPathDTO"));
+        this.setMySession((MySession) this.getServletContext().getAttribute("MySession"));
+
 
         try {
             this.setCtx(WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext()));
@@ -54,17 +66,6 @@ public class FrontControllerServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        System.out.println("Classe detation(MultipartConfig.class) != null));
-        try {
-            System.out.println("Parts directes : " + req.getParts().size());
-            for (Part p : req.getParts()) {
-                System.out.println("  name=" + p.getName() + " filename=" + p.getSubmittedFileName());
-            } la requête : " + req.getClass().getName());
-        System.out.println("@MultipartConfig présent : "
-                + (getClass().getAnno
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         processHandler(req, res);
     }
 
@@ -87,7 +88,7 @@ public class FrontControllerServlet extends HttpServlet {
             UrlMethodDTO urlMethodDTO = new UrlMethodDTO(util.getPathAfterBaseURL(req), req.getMethod());
             ControllerMethod ControllerMethod = util.getControllerMethodByUrlMethod(urlMethodDTO, controllerMethods);
             System.out.println(urlMethodDTO + "" + ControllerMethod);
-            ControllerMethod.executeMethod(req, res, this.getViewPathDTO(), ctx);
+            ControllerMethod.executeMethod(req, res, this.getViewPathDTO(), ctx, mySession);
         } catch (NoMethodUrlException e) {
             System.out.println(e.getMessage());
             System.out.println("List des controller method urls:");
