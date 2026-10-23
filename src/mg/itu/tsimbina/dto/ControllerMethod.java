@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import mg.itu.tsimbina.annotation.WebApi;
 import mg.itu.tsimbina.model.MySession;
@@ -55,7 +56,7 @@ public class ControllerMethod {
     }
 
     public void executeMethod(HttpServletRequest request, HttpServletResponse response, ViewPathDTO viewPathDTO,
-            ApplicationContext ctx , MySession mySession) {
+            ApplicationContext ctx ,ServletContext servletContext) {
 
         if (controllerInstance == null) {
             try {
@@ -64,6 +65,7 @@ public class ControllerMethod {
                 throw new RuntimeException("Failed to create controller instance: " + e.getMessage(), e);
             }
         }
+        Map<String,MySession> mapSession= (Map<String,MySession>) servletContext.getAttribute("MapSession");
         try {
             // Class<?>[] parameterTypes = method.getParameterTypes();
             Parameter[] param = method.getParameters();
@@ -72,12 +74,23 @@ public class ControllerMethod {
 
             List<String> keys = new ArrayList<>(parametersMap.keySet());
             Collections.sort(keys);
+            MySession ms=null;
             for (int i = 0; i < param.length; i++) {
                 if (param[i].getType().equals(ApplicationContext.class)) {
                     parameters[i] = ctx;
-                } else    if (param[i].getType().equals(MySession.class )) {
-                    mySession.getSession(request.getSession());
-                    parameters[i] = mySession;
+                } else  if (param[i].getType().equals(MySession.class )) {
+                    String sessionId= request.getSession().getId();
+                    if (!mapSession.containsKey(sessionId)) {
+                         ms= new MySession(request.getSession());
+                        mapSession.put(sessionId, ms);
+                    }
+                    else{
+                         ms= mapSession.get(sessionId);
+                    }
+                    ms.refreshSession();
+                    parameters[i] = ms;
+                   
+                   
                 } 
                 
                 else {
@@ -116,7 +129,7 @@ public class ControllerMethod {
             if (method.isAnnotationPresent(WebApi.class)) {
 
                 Object o = method.invoke(controllerInstance, parameters);
-                mySession.persist(request.getSession());
+                ms.persist();
                 
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
@@ -128,7 +141,7 @@ public class ControllerMethod {
                 response.setContentType("text/html;charset=UTF-8");
 
                 Object o = method.invoke(controllerInstance, parameters);
-                mySession.persist(request.getSession());
+                ms.persist();
                 
                 // if (o.getClass().isInstance(Strin)) {
                 //

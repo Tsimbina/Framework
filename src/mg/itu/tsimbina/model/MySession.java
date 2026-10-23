@@ -9,29 +9,42 @@ import jakarta.servlet.http.HttpSession;
 
 public class MySession {
     Map<String, Object> attribut;
+    HttpSession httpSession;
+
+    public MySession(HttpSession httpSession) {
+        this.httpSession = httpSession;
+    }
+
+    public HttpSession getHttpSession() {
+        return httpSession;
+    }
+
+    public void setHttpSession(HttpSession httpSession) {
+        this.httpSession = httpSession;
+    }
 
     public MySession() {
 
     }
 
-    public void getSession(HttpSession session) {
-        List<String> nomAttribut = Collections.list(session.getAttributeNames());
+    public void refreshSession() {
+        List<String> nomAttribut = Collections.list(httpSession.getAttributeNames());
         attribut = new HashMap<>();
         for (String nom : nomAttribut) {
-            attribut.put(nom, session.getAttribute(nom));
+            attribut.put(nom, httpSession.getAttribute(nom));
         }
     }
 
-    public void persist(HttpSession session) {
-        List<String> nomAttribut = Collections.list(session.getAttributeNames());
+    public void persist() {
+        List<String> nomAttribut = Collections.list(httpSession.getAttributeNames());
         for (String nom : nomAttribut) {
-            session.removeAttribute(nom);
+            httpSession.removeAttribute(nom);
         }
         if (attribut == null) {
             attribut = new HashMap<>();
         }
         for (String nom : attribut.keySet()) {
-            session.setAttribute(nom, attribut.get(nom));
+            httpSession.setAttribute(nom, attribut.get(nom));
         }
     }
 

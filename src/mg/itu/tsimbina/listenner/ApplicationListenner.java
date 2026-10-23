@@ -33,7 +33,8 @@ public class ApplicationListenner implements ServletContextListener {
             context.setAttribute("listClasses", listClasses);
             context.setAttribute("util", util);
             context.setAttribute("viewPathDTO", new ViewPathDTO(context.getInitParameter("viewPrefix"), context.getInitParameter("viewSuffix")));
-            context.setAttribute("MySession", new MySession());
+            Map<String,MySession> mapSession= new HashMap<>();
+            context.setAttribute("MapSession",mapSession );
         } catch (DupicatedUrl e) {
             System.out.println(e.getMessage());
             throw e;

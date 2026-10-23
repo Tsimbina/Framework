@@ -32,14 +32,6 @@ public class FrontControllerServlet extends HttpServlet {
     Map<UrlMethodDTO, ControllerMethod> controllerMethods;
     Util util;
     ViewPathDTO viewPathDTO;
-    MySession mySession;
-    public MySession getMySession() {
-        return mySession;
-    }
-
-    public void setMySession(MySession mySession) {
-        this.mySession = mySession;
-    }
 
     private ApplicationContext ctx;
 
@@ -48,9 +40,7 @@ public class FrontControllerServlet extends HttpServlet {
         this.setUtil((Util) this.getServletContext().getAttribute("util"));
         this.setControllerMethods((Map) this.getServletContext().getAttribute("controllerMethods"));
         this.setViewPathDTO((ViewPathDTO) this.getServletContext().getAttribute("viewPathDTO"));
-        this.setMySession((MySession) this.getServletContext().getAttribute("MySession"));
-
-
+        
         try {
             this.setCtx(WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext()));
         } catch (Exception e) {
@@ -88,7 +78,7 @@ public class FrontControllerServlet extends HttpServlet {
             UrlMethodDTO urlMethodDTO = new UrlMethodDTO(util.getPathAfterBaseURL(req), req.getMethod());
             ControllerMethod ControllerMethod = util.getControllerMethodByUrlMethod(urlMethodDTO, controllerMethods);
             System.out.println(urlMethodDTO + "" + ControllerMethod);
-            ControllerMethod.executeMethod(req, res, this.getViewPathDTO(), ctx, mySession);
+            ControllerMethod.executeMethod(req, res, this.getViewPathDTO(), ctx,this.getServletContext());
         } catch (NoMethodUrlException e) {
             System.out.println(e.getMessage());
             System.out.println("List des controller method urls:");
