@@ -28,26 +28,11 @@ import mg.itu.tsimbina.exception.DupicatedUrl;
 @MultipartConfig 
 public class FrontControllerServlet extends HttpServlet {
 
-    List<Class<?>> listClasses;
-    Map<UrlMethodDTO, ControllerMethod> controllerMethods;
-    Util util;
-    ViewPathDTO viewPathDTO;
+
 
     private ApplicationContext ctx;
 
-    public void init() {
-        this.setListClasses((List) this.getServletContext().getAttribute("listClasses"));
-        this.setUtil((Util) this.getServletContext().getAttribute("util"));
-        this.setControllerMethods((Map) this.getServletContext().getAttribute("controllerMethods"));
-        this.setViewPathDTO((ViewPathDTO) this.getServletContext().getAttribute("viewPathDTO"));
-        
-        try {
-            this.setCtx(WebApplicationContextUtils.getRequiredWebApplicationContext(getServletContext()));
-        } catch (Exception e) {
-            this.setCtx(null);
-        }
 
-    }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
@@ -60,67 +45,16 @@ public class FrontControllerServlet extends HttpServlet {
     }
 
     public void processHandler(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-
-        // res.setContentType("text/plain");
-        // PrintWriter out = res.getWriter();
-        System.out.println("Welcome to FrameWorkMvc via url: " + req.getRequestURI());
-        System.out.println();
-        System.out.println();
-
-        System.out.println("List des classes controller :");
-        for (Class<?> elem : getListClasses()) {
-            System.out.println(elem.getName());
-        }
-        System.out.println();
-        System.out.println();
-
         try {
-            UrlMethodDTO urlMethodDTO = new UrlMethodDTO(util.getPathAfterBaseURL(req), req.getMethod());
-            ControllerMethod ControllerMethod = util.getControllerMethodByUrlMethod(urlMethodDTO, controllerMethods);
-            System.out.println(urlMethodDTO + "" + ControllerMethod);
-            ControllerMethod.executeMethod(req, res, this.getViewPathDTO(), ctx,this.getServletContext());
+            Util util=(Util) this.getServletContext().getAttribute("util");
+            util.executeMethod(req, res, getServletContext());
         } catch (NoMethodUrlException e) {
             System.out.println(e.getMessage());
-            System.out.println("List des controller method urls:");
-
-            for (UrlMethodDTO elem : controllerMethods.keySet()) {
-                System.out.println(elem + " " + controllerMethods.get(elem));
-            }
         }
 
     }
 
-    public List<Class<?>> getListClasses() {
-        return this.listClasses;
-    }
 
-    public void setListClasses(List<Class<?>> var1) {
-        this.listClasses = var1;
-    }
-
-    public Map<UrlMethodDTO, ControllerMethod> getControllerMethods() {
-        return this.controllerMethods;
-    }
-
-    public void setControllerMethods(Map<UrlMethodDTO, ControllerMethod> var1) {
-        this.controllerMethods = var1;
-    }
-
-    public Util getUtil() {
-        return this.util;
-    }
-
-    public void setUtil(Util var1) {
-        this.util = var1;
-    }
-
-    public ViewPathDTO getViewPathDTO() {
-        return viewPathDTO;
-    }
-
-    public void setViewPathDTO(ViewPathDTO viewPathDTO) {
-        this.viewPathDTO = viewPathDTO;
-    }
 
     public ApplicationContext getCtx() {
         return ctx;
