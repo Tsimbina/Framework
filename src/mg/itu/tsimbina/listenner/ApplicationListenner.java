@@ -28,17 +28,21 @@ public class ApplicationListenner implements ServletContextListener {
         Map<UrlMethodDTO, ControllerMethod> controllerMethods = new HashMap<>();
         List<Class<?>> listClasses = new ArrayList<>();
         try {
-            listClasses = util.getClasses(context.getInitParameter("packages"), controllerMethods);
+            util.getClasses(context.getInitParameter("packages"), controllerMethods,listClasses);
             context.setAttribute("controllerMethods", controllerMethods);
             context.setAttribute("listClasses", listClasses);
             context.setAttribute("util", util);
+            context.setAttribute("authKey", context.getInitParameter("authKey"));
             context.setAttribute("viewPathDTO", new ViewPathDTO(context.getInitParameter("viewPrefix"), context.getInitParameter("viewSuffix")));
             Map<String,MySession> mapSession= new HashMap<>();
             context.setAttribute("MapSession",mapSession );
         } catch (DupicatedUrl e) {
             System.out.println(e.getMessage());
             throw e;
+        } catch(Exception e){
+            e.printStackTrace();
         }
+        
 
     }
 

@@ -47,6 +47,9 @@ public class MySession {
             httpSession.setAttribute(nom, attribut.get(nom));
         }
     }
+    public boolean containsKey (String key){
+        return attribut.containsKey(key);
+    }
 
     public Object get(String name) {
         return this.attribut.get(name);

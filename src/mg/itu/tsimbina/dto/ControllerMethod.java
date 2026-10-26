@@ -6,9 +6,12 @@ import java.lang.reflect.Method;
 import jakarta.servlet.RequestDispatcher;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
+import mg.itu.tsimbina.annotation.Auth;
 import mg.itu.tsimbina.annotation.WebApi;
+import mg.itu.tsimbina.exception.NonAuthorizeException;
 import mg.itu.tsimbina.model.MySession;
 import mg.itu.tsimbina.util.Binder;
+import mg.itu.tsimbina.util.Util;
 import mg.itu.tsimbina.view.ModelAndView;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
@@ -18,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.lang.reflect.Parameter;
@@ -25,7 +29,22 @@ import java.lang.reflect.Parameter;
 public class ControllerMethod {
 
     private Class<?> controllerClass;
+
+    public ControllerMethod(Class<?> controllerClass, Object controllerInstance, Method method) {
+        this.controllerClass = controllerClass;
+        this.controllerInstance = controllerInstance;
+        this.method = method;
+    }
+
     private Object controllerInstance;
+
+    public Object getControllerInstance() {
+        return controllerInstance;
+    }
+
+    public void setControllerInstance(Object controllerInstance) {
+        this.controllerInstance = controllerInstance;
+    }
 
     public ControllerMethod(Class<?> controllerClass, Method method) {
         this.controllerClass = controllerClass;
@@ -55,9 +74,9 @@ public class ControllerMethod {
         this.method = method;
     }
 
-    public void executeMethod(HttpServletRequest request, HttpServletResponse response, ViewPathDTO viewPathDTO,
-            ApplicationContext ctx ,ServletContext servletContext) {
-
+    public void executeMethod(HttpServletRequest request, HttpServletResponse response,
+            ServletContext servletContext) {
+        ViewPathDTO viewPathDTO = (ViewPathDTO) servletContext.getAttribute("viewPathDTO");
         if (controllerInstance == null) {
             try {
                 controllerInstance = controllerClass.getDeclaredConstructor().newInstance();
@@ -65,7 +84,33 @@ public class ControllerMethod {
                 throw new RuntimeException("Failed to create controller instance: " + e.getMessage(), e);
             }
         }
-        Map<String,MySession> mapSession= (Map<String,MySession>) servletContext.getAttribute("MapSession");
+        ApplicationContext ctx = WebApplicationContextUtils.getRequiredWebApplicationContext(servletContext);
+
+        Map<String, MySession> mapSession = (Map<String, MySession>) servletContext.getAttribute("MapSession");
+
+        String sessionId = request.getSession().getId();
+        String authKey = (String) servletContext.getAttribute("authKey");
+
+        // Initialisation de la session personnalisée
+        MySession ms = mapSession.get(sessionId);
+
+        if (ms == null) {
+            ms = new MySession(request.getSession());
+            mapSession.put(sessionId, ms);
+        }
+
+        ms.refreshSession();
+        if (method.isAnnotationPresent(Auth.class)) {
+            if (mapSession.containsKey(sessionId)) {
+                if (!mapSession.get(sessionId).containsKey(authKey)) {
+                    throw new NonAuthorizeException(authKey);
+                }
+            } else {
+                throw new NonAuthorizeException(authKey);
+            }
+
+        }
+
         try {
             // Class<?>[] parameterTypes = method.getParameterTypes();
             Parameter[] param = method.getParameters();
@@ -74,55 +119,20 @@ public class ControllerMethod {
 
             List<String> keys = new ArrayList<>(parametersMap.keySet());
             Collections.sort(keys);
-            MySession ms=null;
             for (int i = 0; i < param.length; i++) {
                 if (param[i].getType().equals(ApplicationContext.class)) {
                     parameters[i] = ctx;
-                } else  if (param[i].getType().equals(MySession.class )) {
-                    String sessionId= request.getSession().getId();
-                    if (!mapSession.containsKey(sessionId)) {
-                         ms= new MySession(request.getSession());
-                        mapSession.put(sessionId, ms);
-                    }
-                    else{
-                         ms= mapSession.get(sessionId);
-                    }
-                    ms.refreshSession();
+                } else if (param[i].getType().equals(MySession.class)) {
                     parameters[i] = ms;
-                   
-                   
-                } 
-                
+
+                }
+
                 else {
                     Class<?> type = param[i].getType();
                     String valeur = request.getParameter(param[i].getName());
                     Part[] parts = request.getParts().toArray(new Part[0]);
-                    System.out.println("Content-Type : " + request.getContentType());
-                    System.out.println("Nombre de parts : " + parts.length);
-                    for (Part p : parts) {
-                        System.out.println("part name=" + p.getName()
-                                + " filename=" + p.getSubmittedFileName()
-                                + " size=" + p.getSize());
-                    }
-                    System.out.println("Prefix attendu : " + param[i].getName());
                     parameters[i] = Binder.bind(parametersMap, parts, param[i].getName(), type);
 
-                    // if (type == int.class || type == Integer.class) {
-                    // parameters[i] = Integer.parseInt(valeur);
-                    // } else if (type == double.class || type == Double.class) {
-                    // parameters[i] = Double.parseDouble(valeur);
-                    // } else if (type == boolean.class || type == Boolean.class) {
-                    // parameters[i] = Boolean.parseBoolean(valeur);
-                    // } else if (type == long.class || type == Long.class) {
-                    // parameters[i] = Long.parseLong(valeur);
-                    // } else if (type == String.class) {
-                    // parameters[i] = valeur;
-                    // }
-
-                    // parameters[i] =
-                    // param[i].getType().cast(request.getParameter(param[i].getName()));
-
-                    // System.out.println("parm n-"+1+" has name-> "+ param[i].getName());
                 }
             }
 
@@ -130,7 +140,7 @@ public class ControllerMethod {
 
                 Object o = method.invoke(controllerInstance, parameters);
                 ms.persist();
-                
+
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
                 response.getWriter().write(new ObjectMapper().writeValueAsString(o));
@@ -142,7 +152,7 @@ public class ControllerMethod {
 
                 Object o = method.invoke(controllerInstance, parameters);
                 ms.persist();
-                
+
                 // if (o.getClass().isInstance(Strin)) {
                 //
                 // }

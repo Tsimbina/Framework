@@ -5,7 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+
+import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.lang.reflect.Parameter;
 import mg.itu.tsimbina.annotation.Controller;
 import mg.itu.tsimbina.annotation.UrlMapping;
@@ -55,7 +61,7 @@ public class Util {
         return listClasses;
     }
 
-    public List<Class<?>> getClasses(String packagesName, Class<?> annotationClass) {
+    public List<Class<?>> loadClasses(String packagesName, Class<?> annotationClass) {
         List<Class<?>> listClasses = getClasses(packagesName);
         List<Class<?>> listAnnotatedClasses = new ArrayList<>();
 
@@ -67,11 +73,13 @@ public class Util {
         return listAnnotatedClasses;
     }
 
-    public List<Class<?>> getClasses(String packagesName, Map<UrlMethodDTO, ControllerMethod> controlerMethods) throws DupicatedUrl {
-        List<Class<?>> listClasses = getClasses(packagesName);
+    public void getClasses(String packagesName, Map<UrlMethodDTO, ControllerMethod> controlerMethods,
+            List<Class<?>> listClasses) throws DupicatedUrl, Exception {
+        listClasses = getClasses(packagesName);
         List<Class<?>> listAnnotatedClasses = new ArrayList<>();
-
+        //Object o = null;
         for (Class<?> elem : listClasses) {
+            //o = elem.getDeclaredConstructor().newInstance();
             if (elem.isAnnotationPresent(Controller.class)) {
                 listAnnotatedClasses.add(elem);
                 for (java.lang.reflect.Method method : elem.getMethods()) {
@@ -83,21 +91,29 @@ public class Util {
                         if (controlerMethods.containsKey(urlMethodDTO)) {
                             throw new DupicatedUrl(urlMethodDTO);
                         }
-                        controlerMethods.put(urlMethodDTO, new ControllerMethod(elem, method));
+                        controlerMethods.put(urlMethodDTO, new ControllerMethod(elem,  method));
                     }
 
                 }
             }
         }
-        return listAnnotatedClasses;
     }
+
+    public void executeMethod(HttpServletRequest req, HttpServletResponse res, ServletContext servletContext) {
+        Map<UrlMethodDTO, ControllerMethod> controllerMethods = (Map<UrlMethodDTO, ControllerMethod>) servletContext.getAttribute("controllerMethods");
+        UrlMethodDTO urlMethodDTO = new UrlMethodDTO(this.getPathAfterBaseURL(req), req.getMethod());
+        ControllerMethod ControllerMethod = this.getControllerMethodByUrlMethod(urlMethodDTO, controllerMethods);
+        ControllerMethod.executeMethod(req, res, servletContext);
+    }
+
     public String getPathAfterBaseURL(HttpServletRequest req) {
         String baseURL = req.getContextPath();
         String requestURL = req.getRequestURI();
         return requestURL.substring(baseURL.length());
     }
 
-    public ControllerMethod getControllerMethodByUrlMethod(UrlMethodDTO urlMethodDTO, Map<UrlMethodDTO, ControllerMethod> controllerMethods) {
+    public ControllerMethod getControllerMethodByUrlMethod(UrlMethodDTO urlMethodDTO,
+            Map<UrlMethodDTO, ControllerMethod> controllerMethods) {
         ControllerMethod ret = controllerMethods.get(urlMethodDTO);
         if (ret != null) {
             return ret;
@@ -107,16 +123,12 @@ public class Util {
         }
     }
 
-    public List<String> splitParamName(String paramName){
-        return  List.of(paramName.split("."));
+    public List<String> splitParamName(String paramName) {
+        return List.of(paramName.split("."));
     }
 
-    public void buildParamObject( Object paramReturn, Parameter param ,HttpServletRequest request){
-        
+    public void buildParamObject(Object paramReturn, Parameter param, HttpServletRequest request) {
+
     }
 
-
-    
-
-   
 }
