@@ -33,6 +33,7 @@ public class ApplicationListenner implements ServletContextListener {
             context.setAttribute("listClasses", listClasses);
             context.setAttribute("util", util);
             context.setAttribute("authKey", context.getInitParameter("authKey"));
+            context.setAttribute("roleKey", context.getInitParameter("roleKey"));
             context.setAttribute("viewPathDTO", new ViewPathDTO(context.getInitParameter("viewPrefix"), context.getInitParameter("viewSuffix")));
             Map<String,MySession> mapSession= new HashMap<>();
             context.setAttribute("MapSession",mapSession );
