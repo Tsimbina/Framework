@@ -2,9 +2,9 @@ package mg.itu.tsimbina.exception;
 
 import mg.itu.tsimbina.dto.UrlMethodDTO;
 
-public class DupicatedUrl extends RuntimeException{
+public class DupicatedUrlException extends RuntimeException{
 
-    public DupicatedUrl(UrlMethodDTO urlMethodDTO) {
+    public DupicatedUrlException(UrlMethodDTO urlMethodDTO) {
         super(urlMethodDTO.getUrl() + " avec method " + urlMethodDTO.getMethodName() + " est deja dans un autre method.");
     }
     

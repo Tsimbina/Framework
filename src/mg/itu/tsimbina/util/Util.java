@@ -17,7 +17,8 @@ import mg.itu.tsimbina.annotation.Controller;
 import mg.itu.tsimbina.annotation.UrlMapping;
 import mg.itu.tsimbina.dto.ControllerMethod;
 import mg.itu.tsimbina.dto.UrlMethodDTO;
-import mg.itu.tsimbina.exception.DupicatedUrl;
+
+import mg.itu.tsimbina.exception.DupicatedUrlException;
 import mg.itu.tsimbina.exception.NoMethodUrlException;
 
 public class Util {
@@ -74,12 +75,12 @@ public class Util {
     }
 
     public void getClasses(String packagesName, Map<UrlMethodDTO, ControllerMethod> controlerMethods,
-            List<Class<?>> listClasses) throws DupicatedUrl, Exception {
+            List<Class<?>> listClasses) throws DupicatedUrlException, Exception {
         listClasses = getClasses(packagesName);
         List<Class<?>> listAnnotatedClasses = new ArrayList<>();
-        //Object o = null;
+        Object o = null;
         for (Class<?> elem : listClasses) {
-            //o = elem.getDeclaredConstructor().newInstance();
+            o = elem.getDeclaredConstructor().newInstance();
             if (elem.isAnnotationPresent(Controller.class)) {
                 listAnnotatedClasses.add(elem);
                 for (java.lang.reflect.Method method : elem.getMethods()) {
@@ -89,9 +90,9 @@ public class Util {
                         String methodName = mapping.methodName();
                         UrlMethodDTO urlMethodDTO = new UrlMethodDTO(url, methodName);
                         if (controlerMethods.containsKey(urlMethodDTO)) {
-                            throw new DupicatedUrl(urlMethodDTO);
+                            throw new DupicatedUrlException(urlMethodDTO);
                         }
-                        controlerMethods.put(urlMethodDTO, new ControllerMethod(elem,  method));
+                        controlerMethods.put(urlMethodDTO, new ControllerMethod(elem,o,  method));
                     }
 
                 }
