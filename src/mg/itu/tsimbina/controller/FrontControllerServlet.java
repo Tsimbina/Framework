@@ -23,7 +23,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import mg.itu.tsimbina.dto.UrlMethodDTO;
 import mg.itu.tsimbina.dto.ViewPathDTO;
-import mg.itu.tsimbina.exception.DupicatedUrl;
+import mg.itu.tsimbina.exception.DupicatedUrlException;
 
 @MultipartConfig 
 public class FrontControllerServlet extends HttpServlet {

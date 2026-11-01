@@ -8,7 +8,8 @@ import jakarta.servlet.ServletContext;
 import mg.itu.tsimbina.annotation.UrlMapping;
 import mg.itu.tsimbina.dto.ControllerMethod;
 import mg.itu.tsimbina.dto.UrlMethodDTO;
-import mg.itu.tsimbina.exception.DupicatedUrl;
+
+import mg.itu.tsimbina.exception.DupicatedUrlException;
 import mg.itu.tsimbina.model.MySession;
 import mg.itu.tsimbina.util.Util;
 import jakarta.servlet.ServletContextEvent;
@@ -19,7 +20,7 @@ import mg.itu.tsimbina.dto.ViewPathDTO;
 public class ApplicationListenner implements ServletContextListener {
 
     @Override
-    public void contextInitialized(ServletContextEvent sce) throws DupicatedUrl {
+    public void contextInitialized(ServletContextEvent sce) throws DupicatedUrlException {
         System.out.println("Application started");
 
         Util util = new Util();
@@ -37,7 +38,7 @@ public class ApplicationListenner implements ServletContextListener {
             context.setAttribute("viewPathDTO", new ViewPathDTO(context.getInitParameter("viewPrefix"), context.getInitParameter("viewSuffix")));
             Map<String,MySession> mapSession= new HashMap<>();
             context.setAttribute("MapSession",mapSession );
-        } catch (DupicatedUrl e) {
+        } catch (DupicatedUrlException e) {
             System.out.println(e.getMessage());
             throw e;
         } catch(Exception e){
