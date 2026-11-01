@@ -90,7 +90,7 @@ public class ControllerMethod {
 
         String sessionId = request.getSession().getId();
         String authKey = (String) servletContext.getAttribute("authKey");
-
+        String roleKey = (String) servletContext.getAttribute("roleKey");
         // Initialisation de la session personnalisée
         MySession ms = mapSession.get(sessionId);
 
@@ -104,6 +104,20 @@ public class ControllerMethod {
             if (mapSession.containsKey(sessionId)) {
                 if (!mapSession.get(sessionId).containsKey(authKey)) {
                     throw new NonAuthorizeException(authKey);
+                } else if(mapSession.get(sessionId).containsKey(roleKey)){
+                    String[] roles = method.getAnnotation(Auth.class).role();
+                    boolean isAutorize= false;
+                    for (String r : roles) {
+                        if (r.equals(mapSession.get(sessionId).get(roleKey))) {
+                            isAutorize=true;
+                        }
+                    }
+                    if (!isAutorize) {
+                        throw new NonAuthorizeException(authKey);    
+                    }
+                }
+                else{
+                    throw new NonAuthorizeException(authKey);    
                 }
             } else {
                 throw new NonAuthorizeException(authKey);
